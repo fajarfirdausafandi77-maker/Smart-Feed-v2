@@ -2,15 +2,28 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Smart Feed by Fajar Afandi</title>
   <meta name="description" content="Aplikasi formulasi pakan ternak berbasis LP Optimizer. Sapi, Domba, Kambing, Ayam Broiler & Petelur." />
   <meta name="theme-color" content="#16a34a" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; width: 100%; overflow: hidden; background: #f1f5f9; }
-    #root { height: 100%; width: 100%; display: flex; justify-content: center; }
+    html { height: 100%; width: 100%; background: #f1f5f9; }
+    body { height: 100%; width: 100%; overflow: hidden; background: #f1f5f9;
+           /* iOS safe area support */
+           padding-bottom: env(safe-area-inset-bottom, 0px);
+           padding-bottom: constant(safe-area-inset-bottom, 0px); }
+    #root { 
+      /* Use dynamic viewport height - works on mobile browsers with address bar */
+      height: 100dvh;
+      height: -webkit-fill-available;
+      height: 100vh; /* fallback */
+      width: 100%; 
+      display: flex; 
+      justify-content: center; 
+      overflow: hidden;
+    }
     input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: #e2e8f0; outline: none; cursor: pointer; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; cursor: pointer; }
     input[type=number] { -moz-appearance: textfield; }
@@ -20,7 +33,22 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
     * { -webkit-tap-highlight-color: transparent; }
     select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px !important; }
-  </style>
+  
+    /* Fix 100vh on mobile browsers */
+    @supports (height: 100dvh) {
+      #root { height: 100dvh; }
+    }
+    @supports (-webkit-fill-available) {
+      #root { height: -webkit-fill-available; }
+    }
+    /* Prevent overscroll bounce on iOS */
+    body { overscroll-behavior: none; position: fixed; width: 100%; }
+    /* Ensure bottom nav always visible */
+    .bottom-nav-safe {
+      padding-bottom: env(safe-area-inset-bottom, 8px);
+      padding-bottom: constant(safe-area-inset-bottom, 8px);
+    }
+</style>
 </head>
 <body>
   <div id="root"></div>
@@ -321,7 +349,7 @@ function App(){
   function runOpt(){setRunning(true);setResult(null);setTimeout(()=>{setResult(runOptimize(selIngs,bounds,nutReqs));setRunning(false);setTab("hasil");},60);}
 
   return(
-    <div style={{display:"flex",flexDirection:"column",height:"100vh",width:"100%",maxWidth:430,background:T.bg,fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",overflow:"hidden"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100%",width:"100%",maxWidth:430,background:T.bg,fontFamily:"'Segoe UI',system-ui,-apple-system,sans-serif",overflow:"hidden"}}>
       {/* HEADER */}
       <div style={{background:T.white,borderBottom:"1px solid "+T.border,padding:"10px 16px",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -341,7 +369,7 @@ function App(){
       </div>
 
       {/* CONTENT */}
-      <div style={{flex:1,overflow:"hidden",width:"100%"}}>
+      <div style={{flex:1,overflow:"hidden",width:"100%",minHeight:0}}>
         {tab==="library"&&<LibraryTab feedLib={feedLib} libCat={libCat} setLibCat={setLibCat} libQ={libQ} setLibQ={setLibQ} selIds={selIds} toggle={toggleIng} onEdit={ing=>setEditIng({...ing})} onAdd={()=>setEditIng({...BLANK,_isNew:true})}/>}
         {tab==="formula"&&<FormulaTab feedLib={feedLib} selIds={selIds} bounds={bounds} toggle={toggleIng} updBound={updBound}/>}
         {tab==="target"&&<TargetTab nutReqs={nutReqs} animalId={animalId} phaseId={phaseId} changeAnimal={changeAnimal} changePhase={changePhase} updNut={updNut}/>}
@@ -349,7 +377,7 @@ function App(){
       </div>
 
       {/* BOTTOM NAV */}
-      <div style={{background:T.white,borderTop:"1px solid "+T.border,display:"flex",alignItems:"stretch",height:58,flexShrink:0}}>
+      <div style={{background:T.white,borderTop:"1px solid "+T.border,display:"flex",alignItems:"stretch",height:58,flexShrink:0,paddingBottom:"env(safe-area-inset-bottom, 0px)",boxSizing:"border-box",position:"relative",zIndex:50}}>
         {[["library","🌾","Library"],["formula","⚗️","Formula"],["target","🎯","Target"],["hasil","📊","Hasil"]].map(([id,ico,lbl])=>(
           <button key={id} onClick={()=>setTab(id)} style={{flex:1,background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,padding:"6px 0",position:"relative"}}>
             <span style={{fontSize:18,lineHeight:1}}>{ico}</span>
